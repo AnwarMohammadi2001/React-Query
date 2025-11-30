@@ -10,12 +10,12 @@ import PrivateRoute from "../features/aut/PrivateRoute"; // import private route
 
 // Lazy loaded pages
 const Home = lazy(() => import("../pages/Home"));
-const Dashboard = lazy(() => import("../pages/dashboard/DashboardHome")); // your dashboard page
+const Dashboard = lazy(() => import("../pages/dashboard/Dashboard")); // your dashboard page
 
 export default function AppRoutes() {
   return (
     <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
-      <Navbar />
+      
       <Routes>
         {/* Public Routes */}
         <Route element={<MainLayout />}>
