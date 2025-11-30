@@ -1,21 +1,26 @@
 
 
 import DashboardHomePage from "./DashboardHomePage";
+import Authors from "./pages/Authors";
+import NewNews from "./pages/NewNews";
+import News from "./pages/News";
+import Profile from "./pages/Profile";
+import Setting from "./pages/Setting";
 
 const MainContent = ({ activeComponent }) => {
   switch (activeComponent) {
     case "dashboard":
       return <DashboardHomePage />;
-    case "projects":
-      return <DashboardHomePage />;
+    case "news":
+      return <News />;
     case "profile":
-      return <DashboardHomePage />;
-    case "about":
-      return <DashboardHomePage />;
-    case "message":
-      return <DashboardHomePage />;
-    case "skills":
-      return <DashboardHomePage />;
+      return <Profile />;
+    case "newnews":
+      return <NewNews />;
+    case "setting":
+      return <Setting />;
+    case "author":
+      return <Authors />;
     case "logout":
       return <DashboardHomePage />;
     default:

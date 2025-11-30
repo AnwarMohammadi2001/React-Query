@@ -1,22 +1,50 @@
-import React, { useContext, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MdDashboardCustomize,
   MdWork,
-  MdPerson,
-  MdInfo,
-  MdMessage,
-  MdBuild,
+  MdAddCard,
   MdLogout,
 } from "react-icons/md";
+import { CiSettings } from "react-icons/ci";
+import { FiUsers } from "react-icons/fi";
+import { LuUser } from "react-icons/lu";
 import { FaBars, FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
 const Sidebar = ({ activeComponent, setActiveComponent }) => {
-  const MySwal = withReactContent(Swal);
+  const [currentUser, setCurrentUser] = useState(null);
   const [isOpen, setIsOpen] = useState(true);
   const navigate = useNavigate();
+  const MySwal = withReactContent(Swal);
+
+  const token = localStorage.getItem("token");
+
+  // Fetch logged-in user
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const user = await res.json();
+          setCurrentUser(user);
+        } else {
+          console.error("Failed to fetch user", await res.json());
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUser();
+  }, [token]);
+
   const handleLogout = () => {
     MySwal.fire({
       title: "Are you sure?",
@@ -28,55 +56,29 @@ const Sidebar = ({ activeComponent, setActiveComponent }) => {
       confirmButtonText: "Yes, logout!",
     }).then((result) => {
       if (result.isConfirmed) {
-        navigate("/"); // ✅ redirects to home or login
+        localStorage.removeItem("token"); // remove token
+        navigate("/login"); // redirect to login
       }
     });
   };
 
-  const allMenuItems = [
-    {
-      name: "Dashboard",
-      value: "dashboard",
-      icon: <MdDashboardCustomize className="text-green-500" />,
-      adminOnly: false,
-    },
-    {
-      name: "Projects",
-      value: "projects",
-      icon: <MdWork className="text-blue-500" />,
-      adminOnly: false,
-    },
-
-    {
-      name: "Message",
-      value: "message",
-      icon: <MdMessage className="text-pink-500" />,
-      adminOnly: false,
-    },
-
-    {
-      name: "Logout",
-      value: "logout",
-      icon: <MdLogout className="text-rose-500" />,
-      adminOnly: false,
-    },
+  const menuItems = [
+    { name: "Dashboard", value: "dashboard", icon: <MdDashboardCustomize /> },
+    { name: "News", value: "news", icon: <MdWork /> },
+    { name: "New News", value: "newnews", icon: <MdAddCard /> },
+    { name: "Authors", value: "author", icon: <FiUsers /> },
+    { name: "Setting", value: "setting", icon: <CiSettings /> },
+    { name: "Profile", value: "profile", icon: <LuUser /> },
+    { name: "Logout", value: "logout", icon: <MdLogout /> },
   ];
-
-  const accessibleComponents = allMenuItems.filter((item) => {
-    if (item.adminOnly && currentUser?.role !== "admin") {
-      return false;
-    }
-    return true;
-  });
 
   return (
     <>
       {/* Sidebar */}
       <div
-        className={`fixed lg:static top-0 left-0 h-full z-30 transition-all duration-300 ease-in-out
-          dark:bg-gray-900 dark:text-gray-200 bg-white shadow-md
-          ${isOpen ? "w-64" : "w-0 lg:w-20"} 
-          overflow-hidden`}
+        className={`fixed lg:static top-0 z-30 transition-all duration-300 flex justify-between items-center bg-white shadow-md ${
+          isOpen ? "h-20" : ""
+        } overflow-hidden`}
       >
         {/* Header */}
         <header className="flex items-center justify-between lg:justify-start gap-3 p-5">
@@ -84,13 +86,12 @@ const Sidebar = ({ activeComponent, setActiveComponent }) => {
             <MdDashboardCustomize className="text-green-600 text-xl" />
           </div>
           <span
-            className={`text-lg font-semibold text-blue-600 whitespace-nowrap 
-            ${isOpen ? "inline" : "hidden lg:inline"}`}
+            className={`text-lg font-semibold text-blue-600 whitespace-nowrap ${
+              isOpen ? "inline" : "hidden lg:inline"
+            }`}
           >
-            TET Dashboard
+            News Blog
           </span>
-
-          {/* Close button (Mobile only) */}
           <button
             onClick={() => setIsOpen(false)}
             className="lg:hidden text-red-500"
@@ -99,41 +100,49 @@ const Sidebar = ({ activeComponent, setActiveComponent }) => {
           </button>
         </header>
 
-        {/* Sidebar Links */}
-        <ul className="mx-2 space-y-1">
-          {accessibleComponents.map((component, index) => (
-            <li key={index} className="relative group cursor-pointer">
+        {/* Menu Links */}
+        <ul className="mx-2 flex space-x-1">
+          {menuItems.map((item, index) => (
+            <li key={index} className="cursor-pointer">
               <button
                 onClick={() => {
-                  if (component.value === "logout") {
-                    handleLogout();
-                  } else {
-                    setActiveComponent(component.value);
-                  }
+                  if (item.value === "logout") handleLogout();
+                  else setActiveComponent(item.value);
                   if (window.innerWidth < 1024) setIsOpen(false);
                 }}
-                className={`flex items-center gap-x-3 w-full px-4 py-3 rounded-md transition-all duration-300
-                  ${
-                    activeComponent === component.value
-                      ? "bg-gray-200 text-blue-600 dark:bg-gray-700 dark:text-blue-400 border-l-4 border-blue-600"
-                      : "hover:bg-gray-200 dark:hover:bg-gray-700 text-black dark:text-gray-200"
-                  }`}
+                className={`flex items-center gap-x-3 w-full px-4 py-3 rounded-md transition-all duration-300 ${
+                  activeComponent === item.value
+                    ? "bg-gray-200 text-blue-600"
+                    : "hover:bg-gray-200 text-black"
+                }`}
               >
-                <span className="text-xl">{component.icon}</span>
-                {/* Show names when sidebar is open OR always on mobile/tablet */}
-                <span
-                  className={`text-base font-medium whitespace-nowrap 
-                    ${isOpen ? "inline" : "hidden lg:inline"}`}
-                >
-                  {component.name}
+                <span className="text-xl">{item.icon}</span>
+                <span className={`${isOpen ? "inline" : "hidden lg:inline"}`}>
+                  {item.name}
                 </span>
               </button>
             </li>
           ))}
         </ul>
+
+        {/* User info */}
+        <div className="flex items-center gap-3 p-3">
+          <img
+            src={
+              currentUser?.image
+                ? `${BASE_URL}/uploads/${currentUser.image}`
+                : "/default-avatar.png"
+            }
+            alt="User"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <span className="font-semibold text-blue-600">
+            {currentUser?.name || "Guest"}
+          </span>
+        </div>
       </div>
 
-      {/* Toggle Button (Mobile Only) */}
+      {/* Toggle button for mobile */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}

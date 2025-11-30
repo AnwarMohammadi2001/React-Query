@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import sequelize from "./config/db.js";
 
 import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -50,6 +51,7 @@ app.get("/", (req, res) => {
 
 // API routes
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 // Start server
 const startServer = async () => {
