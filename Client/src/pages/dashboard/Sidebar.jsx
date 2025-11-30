@@ -43,6 +43,7 @@ const Sidebar = ({ activeComponent, setActiveComponent }) => {
       }
     };
     fetchUser();
+    console.log(currentUser);
   }, [token]);
 
   const handleLogout = () => {
@@ -76,7 +77,7 @@ const Sidebar = ({ activeComponent, setActiveComponent }) => {
     <>
       {/* Sidebar */}
       <div
-        className={`fixed lg:static top-0 z-30 transition-all duration-300 flex justify-between items-center bg-white shadow-md ${
+        className={`sticky right-0 left-0 top-0 z-30 transition-all duration-300 flex justify-between items-center bg-white shadow-md ${
           isOpen ? "h-20" : ""
         } overflow-hidden`}
       >

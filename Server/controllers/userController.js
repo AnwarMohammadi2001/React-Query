@@ -32,13 +32,16 @@ export const getUserByEmail = async (email) => {
 };
 
 // گرفتن همه کاربران
-export const getAllUsers = async () => {
+// GET ALL USERS
+export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll();
-    return users;
+    const users = await User.findAll({
+      attributes: ["id", "name", "email", "createdAt"], // send only safe data
+    });
+
+    res.json(users);
   } catch (err) {
-    console.error(err);
-    return [];
+    res.status(500).json({ message: err.message });
   }
 };
 
