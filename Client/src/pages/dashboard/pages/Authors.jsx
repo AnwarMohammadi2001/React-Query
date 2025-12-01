@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   MdPerson,
   MdEmail,
@@ -9,51 +10,41 @@ import {
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+const fetchAuthors = async () => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${BASE_URL}/api/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch users");
+  return res.json();
+};
+
 const Authors = () => {
-  const [authors, setAuthors] = useState([]);
-  const [filteredAuthors, setFilteredAuthors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
 
-  const token = localStorage.getItem("token");
+  // 🔥 USE REACT QUERY INSTEAD OF useEffect
+  const {
+    data: authors = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["authors"],
+    queryFn: fetchAuthors,
+  });
 
-  useEffect(() => {
-    const fetchAuthors = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/api/users`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  // 🔥 FILTER & SORT
+  const filteredAuthors = React.useMemo(() => {
+    if (!authors) return [];
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch users");
-        }
-
-        const data = await res.json();
-        setAuthors(data);
-        setFilteredAuthors(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAuthors();
-  }, [token]);
-
-  // Filter and sort authors
-  useEffect(() => {
     let result = authors.filter(
       (author) =>
         author.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         author.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Sort results
     result = result.sort((a, b) => {
       switch (sortBy) {
         case "name":
@@ -67,19 +58,17 @@ const Authors = () => {
       }
     });
 
-    setFilteredAuthors(result);
-  }, [searchTerm, sortBy, authors]);
+    return result;
+  }, [authors, searchTerm, sortBy]);
 
-  const getInitials = (name) => {
-    return (
-      name
-        ?.split(" ")
-        .map((word) => word[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2) || "U"
-    );
-  };
+  // Helpers
+  const getInitials = (name) =>
+    name
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "U";
 
   const getRandomColor = (name) => {
     const colors = [
@@ -90,27 +79,24 @@ const Authors = () => {
       "bg-gradient-to-r from-orange-500 to-orange-600",
       "bg-gradient-to-r from-teal-500 to-teal-600",
     ];
-    const index = name?.length % colors.length || 0;
-    return colors[index];
+    return colors[name?.length % colors.length] || colors[0];
   };
 
-  if (loading) {
+  // Loading skeleton
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-64 mb-6"></div>
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-20 bg-gray-200 rounded-lg"></div>
-              ))}
-            </div>
-          </div>
+        <div className="max-w-6xl mx-auto animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-64 mb-6"></div>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-20 bg-gray-200 rounded-lg mb-4"></div>
+          ))}
         </div>
       </div>
     );
   }
 
+  // Error
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -120,215 +106,128 @@ const Authors = () => {
             <h2 className="text-red-800 text-xl font-semibold mb-2">
               Error Loading Authors
             </h2>
-            <p className="text-red-600">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              Try Again
-            </button>
+            <p className="text-red-600">{error.message}</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // MAIN UI
   return (
-    <div className="min-h-screen  bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Authors</h1>
-          <p className="text-gray-600">
-            Manage and view all authors in the system
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Authors</h1>
+        <p className="text-gray-600 mb-8">
+          Manage and view all authors in the system
+        </p>
 
-        {/* Stats Cards */}
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Total Authors */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Total Authors
-                </p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">
-                  {authors.length}
-                </p>
-              </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <MdPerson className="text-blue-500 text-2xl" />
-              </div>
-            </div>
+            <p className="text-gray-600 text-sm">Total Authors</p>
+            <p className="text-3xl font-bold mt-1">{authors.length}</p>
           </div>
 
+          {/* Active Users */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Active Users
-                </p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">
-                  {authors.length}
-                </p>
-              </div>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <MdEmail className="text-green-500 text-2xl" />
-              </div>
-            </div>
+            <p className="text-gray-600 text-sm">Active Users</p>
+            <p className="text-3xl font-bold mt-1">{authors.length}</p>
           </div>
 
+          {/* New this month */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  New This Month
-                </p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">
-                  {
-                    authors.filter((author) => {
-                      const monthAgo = new Date();
-                      monthAgo.setMonth(monthAgo.getMonth() - 1);
-                      return new Date(author.createdAt) > monthAgo;
-                    }).length
-                  }
-                </p>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <MdCalendarToday className="text-purple-500 text-2xl" />
-              </div>
-            </div>
+            <p className="text-gray-600 text-sm">New This Month</p>
+            <p className="text-3xl font-bold mt-1">
+              {
+                authors.filter((a) => {
+                  const monthAgo = new Date();
+                  monthAgo.setMonth(monthAgo.getMonth() - 1);
+                  return new Date(a.createdAt) > monthAgo;
+                }).length
+              }
+            </p>
           </div>
         </div>
 
-        {/* Search and Filter Bar */}
+        {/* Search + sort */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 mb-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 w-full">
-              <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <MdSearch className="absolute left-3 top-3 text-gray-400 text-xl" />
               <input
                 type="text"
-                placeholder="Search authors by name or email..."
+                placeholder="Search authors..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <MdFilterList className="text-gray-400 text-xl" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-              >
-                <option value="name">Sort by Name</option>
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-              </select>
-            </div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg"
+            >
+              <option value="name">Sort by Name</option>
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
           </div>
         </div>
 
         {/* Authors List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           {filteredAuthors.length === 0 ? (
-            <div className="text-center py-12">
-              <MdPerson className="text-gray-300 text-6xl mx-auto mb-4" />
-              <h3 className="text-gray-500 text-lg font-medium mb-2">
-                No authors found
-              </h3>
-              <p className="text-gray-400">
-                {searchTerm
-                  ? "Try adjusting your search terms"
-                  : "No authors available"}
-              </p>
+            <div className="py-12 text-center text-gray-500">
+              No authors found
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
-              {filteredAuthors.map((author) => (
-                <div
-                  key={author.id}
-                  className="p-6 hover:bg-gray-50 transition-colors duration-200"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div
-                        className={`${getRandomColor(
-                          author.name
-                        )} w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm`}
-                      >
-                        {author.image ? (
-                          <img
-                            src={`${BASE_URL}/uploads/${author.image}`}
-                            alt={author.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div
-                            className={`${getRandomColor(
-                              author.name
-                            )} w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm`}
-                          >
-                            {getInitials(author.name)}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 text-lg">
-                          {author.name}
-                        </h3>
-                        <div className="flex items-center space-x-2 text-gray-600 mt-1">
-                          <MdEmail className="text-gray-400" />
-                          <span className="text-sm">{author.email}</span>
-                        </div>
-                      </div>
-                    </div>
+            filteredAuthors.map((author) => (
+              <div
+                key={author.id}
+                className="p-6 border-b last:border-b-0 hover:bg-gray-50 flex justify-between"
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`${getRandomColor(
+                      author.name
+                    )} w-12 h-12 rounded-full flex items-center justify-center text-white font-bold`}
+                  >
+                    {author.image ? (
+                      <img
+                        src={`${BASE_URL}/uploads/${author.image}`}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      getInitials(author.name)
+                    )}
+                  </div>
 
-                    <div className="flex items-center space-x-6">
-                      <div className="text-right">
-                        <div className="flex items-center space-x-1 text-gray-500 text-sm">
-                          <MdCalendarToday className="text-gray-400" />
-                          <span>
-                            Joined{" "}
-                            {author.createdAt
-                              ? new Date(author.createdAt).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  }
-                                )
-                              : "N/A"}
-                          </span>
-                        </div>
-                        {author.role && (
-                          <span
-                            className={`inline-block mt-1 px-2 py-1 text-xs rounded-full ${
-                              author.role === "admin"
-                                ? "bg-purple-100 text-purple-800"
-                                : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {author.role}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                  <div>
+                    <h3 className="font-semibold">{author.name}</h3>
+                    <p className="text-gray-600 text-sm">{author.email}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                <div className="text-right text-gray-500 text-sm">
+                  Joined{" "}
+                  {new Date(author.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </div>
+              </div>
+            ))
           )}
         </div>
 
-        {/* Footer Info */}
-        {filteredAuthors.length > 0 && (
-          <div className="mt-4 text-center text-gray-500 text-sm">
-            Showing {filteredAuthors.length} of {authors.length} authors
-          </div>
-        )}
+        <p className="text-center text-gray-500 text-sm mt-4">
+          Showing {filteredAuthors.length} of {authors.length}
+        </p>
       </div>
     </div>
   );
