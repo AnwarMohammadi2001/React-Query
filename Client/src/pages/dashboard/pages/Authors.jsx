@@ -209,6 +209,10 @@ const Authors = () => {
                   <div>
                     <h3 className="font-semibold">{author.name}</h3>
                     <p className="text-gray-600 text-sm">{author.email}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      News Articles:{" "}
+                      <span className="font-medium">{author.newsCount}</span>
+                    </p>
                   </div>
                 </div>
 

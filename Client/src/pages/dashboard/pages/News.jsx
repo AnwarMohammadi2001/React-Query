@@ -51,11 +51,11 @@ const News = () => {
           <p className="text-sm text-gray-500 mt-2">
             Category: <span className="font-medium">{item.category}</span>{" "}
           </p>
-          {item.User && (
+          {item.author && (
             <p className="text-sm text-gray-400 mt-1">
-              Author: {item.User.name} ({item.User.email}){" "}
+              Author: {item.author.name} ({item.author.email})
             </p>
-          )}{" "}
+          )}
           <p className="text-xs text-gray-400 mt-1">
             Created at: {new Date(item.createdAt).toLocaleString()}{" "}
           </p>{" "}
