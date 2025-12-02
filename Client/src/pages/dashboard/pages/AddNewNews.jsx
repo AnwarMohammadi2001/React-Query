@@ -68,7 +68,6 @@ const AddNewNews = () => {
       setFormData({ title: "", content: "", category: "" });
       setImage(null);
       setImagePreview(null);
-
       // Auto-clear success message after 5 seconds
       setTimeout(() => {
         setMessage({ type: "", text: "" });

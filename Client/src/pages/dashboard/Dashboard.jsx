@@ -16,7 +16,7 @@ const Dashboard = () => {
       </div>
 
       {/* MAIN CONTENT UNDER SIDEBAR */}
-      <main className="pt-20 px-4 dark:bg-gray-700 min-h-screen">
+      <main className="pt-20  dark:bg-gray-700 min-h-screen">
         <MainContent activeComponent={activeComponent} />
       </main>
     </div>
