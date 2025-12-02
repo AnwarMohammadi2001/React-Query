@@ -1,12 +1,12 @@
 import React from "react";
-
-import QueryFetch from "../components/QueryFetch";
-import News from "../components/Navbar/News";
-import TestQuery from "../components/TestQuery";
-import CreatePost from "../components/CreatePost";
+import ScanQR from "../ScanQR";
 
 const Home = () => {
-  return <div className="min-h-screen "></div>;
+  return (
+    <div className="min-h-screen ">
+      <ScanQR />
+    </div>
+  );
 };
 
 export default Home;

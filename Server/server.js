@@ -10,7 +10,7 @@ import sequelize from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/userRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
-
+import personRoutes from "./routes/personRoutes.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -55,6 +55,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/news", newsRoutes);
+app.use("/api/person", personRoutes);
 
 // Start server
 const startServer = async () => {

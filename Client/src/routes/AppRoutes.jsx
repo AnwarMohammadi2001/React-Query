@@ -7,6 +7,9 @@ import Navbar from "../components/Navbar/Navbar";
 import Login from "../features/aut/Login";
 import Register from "../features/aut/Register";
 import PrivateRoute from "../features/aut/PrivateRoute"; // import private route
+import PersonList from "../pages/dashboard/pages/PersonList";
+import AddPerson from "../pages/dashboard/pages/AddPerson";
+import PersonDetails from "../pages/dashboard/pages/PersonDetails";
 
 // Lazy loaded pages
 const Home = lazy(() => import("../pages/Home"));
@@ -18,8 +21,12 @@ export default function AppRoutes() {
       <Routes>
         {/* Public Routes */}
         <Route element={<MainLayout />}>
+          {/* <Route path="/" element={<Home />} /> */}
           <Route path="/" element={<Login />} />
-          <Route path="register" element={<Register />} />
+
+          <Route path="/personlist" element={<PersonList />} />
+          <Route path="/add" element={<AddPerson />} />
+          <Route path="/person/:id" element={<PersonDetails />} />
         </Route>
 
         {/* Protected Dashboard Routes */}
@@ -27,7 +34,9 @@ export default function AppRoutes() {
           path="/dashboard/*"
           element={
             <PrivateRoute>
-              <Dashboard />
+              <Dashboard>
+                <Route path="register" element={<Register />} />
+              </Dashboard>
             </PrivateRoute>
           }
         />
