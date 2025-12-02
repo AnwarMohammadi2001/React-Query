@@ -6,13 +6,7 @@ import TestQuery from "../components/TestQuery";
 import CreatePost from "../components/CreatePost";
 
 const Home = () => {
-  return (
-    <div className="min-h-screen ">
-
-      <CreatePost />
-      {/* <TestQuery /> */}
-    </div>
-  );
+  return <div className="min-h-screen "></div>;
 };
 
 export default Home;

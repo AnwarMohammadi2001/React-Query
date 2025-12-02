@@ -15,12 +15,10 @@ const Dashboard = lazy(() => import("../pages/dashboard/Dashboard")); // your da
 export default function AppRoutes() {
   return (
     <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
-      
       <Routes>
         {/* Public Routes */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="login" element={<Login />} />
+          <Route path="/" element={<Login />} />
           <Route path="register" element={<Register />} />
         </Route>
 

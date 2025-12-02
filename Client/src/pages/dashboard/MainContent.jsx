@@ -1,6 +1,5 @@
-
-
 import DashboardHomePage from "./DashboardHomePage";
+import AddNewNews from "./pages/AddNewNews";
 import Authors from "./pages/Authors";
 import NewNews from "./pages/NewNews";
 import News from "./pages/News";
@@ -16,7 +15,7 @@ const MainContent = ({ activeComponent }) => {
     case "profile":
       return <Profile />;
     case "newnews":
-      return <NewNews />;
+      return <AddNewNews />;
     case "setting":
       return <Setting />;
     case "author":
